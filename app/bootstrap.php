@@ -24,12 +24,12 @@ function photosForProducts(array $products): array {
  if (!$products) return [];
  $ids=array_map(static fn($p)=>(int)$p['productId'],$products);
  $marks=implode(',',array_fill(0,count($ids),'?'));
- $q=db()->prepare("SELECT id,product_id,photo_key,sort_order FROM product_photos WHERE product_id IN ($marks) ORDER BY sort_order,id");
+ $q=db()->prepare("SELECT id,product_id,photo_key,thumbnail_key,sort_order FROM product_photos WHERE product_id IN ($marks) ORDER BY sort_order,id");
  $q->execute($ids); $result=[];
  foreach($q->fetchAll() as $photo) $result[(int)$photo['product_id']][]=$photo;
  return $result;
 }
 function galleryForProduct(array $product, array $photosByProduct): array {
  $photos=$photosByProduct[(int)$product['productId']] ?? [];
- return array_map(static fn($photo)=>['id'=>(int)$photo['id'],'url'=>photoUrl($photo['photo_key'])],$photos);
+ return array_map(static fn($photo)=>['id'=>(int)$photo['id'],'url'=>photoUrl($photo['photo_key']),'thumbnail_url'=>photoUrl($photo['thumbnail_key'] ?: $photo['photo_key'])],$photos);
 }

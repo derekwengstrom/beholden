@@ -37,3 +37,12 @@ Keep S3 Block Public Access enabled. Photos are read using presigned GET URLs (1
 5. Existing S3 CORS and IAM permissions for presigned PUT/GET remain applicable. `s3:HeadObject` uses GetObject permission. Each file is limited to 5 MB by the existing presign flow; there is no fixed total gallery size, although one save accepts up to 30 new images.
 
 **Security note:** The starter's presigned PUT flow validates requested file metadata but does not verify the actual uploaded bytes or bind uploaded keys to a server-side upload-intent record. Harden this before allowing untrusted administrators to upload content. S3 presigned GET links expire after 15 minutes, so images on a page left open for a long time may need a refresh.
+
+## Thumbnail upgrade (existing multi-photo installations)
+1. Back up the database and project. Run `mysql -u YOUR_USER -p YOUR_DATABASE < sql/migrate_thumbnails.sql` **once**, after the multi-photo migration. Do not reimport schema.sql.
+2. Deploy updated `app/`, `public/`, and `sql/` files; preserve your existing `.env` and `vendor/`.
+3. For each new photo, the CMS generates a max-320px JPEG preview locally using the browser Canvas API and uploads it directly to S3 using a second presigned PUT URL. The original and thumbnail keys are stored separately. Browser image previews are shown immediately in the editor; saved thumbnails are shown in the CMS and on product listing pages. Clicking a gallery thumbnail loads the full-size original.
+4. Existing photos remain usable with their original image as a fallback. Re-upload older photos if you want generated thumbnails for them.
+5. Your S3 CORS policy must allow PUT from your site origin. IAM permissions must permit `s3:PutObject` and `s3:GetObject` for both `products/*` and `products/thumbs/*` (the latter is already covered by `products/*`).
+
+Note: A failed upload may leave an unreferenced object in S3. Browser-side thumbnails are not an authoritative security validation of the original image; for untrusted administrators use server-side inspection or an S3 post-upload processing pipeline.

@@ -1,7 +1,7 @@
 <?php
 require dirname(__DIR__,2).'/app/bootstrap.php'; requireAdmin(); require dirname(__DIR__,2).'/app/layout.php';
 $id=filter_input(INPUT_GET,'id',FILTER_VALIDATE_INT) ?: 0;
-$p=['name'=>'','description'=>'','price'=>'','photo_key'=>null]; $photos=[];
+$p=['name'=>'','description'=>'','price'=>'','quantity'=>0,'photo_key'=>null]; $photos=[];
 if($id){$q=db()->prepare('SELECT * FROM products WHERE productId=?');$q->execute([$id]);$p=$q->fetch();if(!$p){http_response_code(404);exit('Product not found');}$photos=photosForProducts([['productId'=>$id]])[$id]??[];}
 pageStart($id?'Edit product':'Add product'); ?>
 <div class="panel"><h1><?= $id?'Edit':'Add' ?> product</h1>
@@ -10,6 +10,7 @@ pageStart($id?'Edit product':'Add product'); ?>
 <label>Name<input name="name" required maxlength="200" value="<?= e($p['name']) ?>"></label>
 <label>Description<textarea name="description" rows="5" required><?= e($p['description']) ?></textarea></label>
 <label>Price (USD)<input type="number" name="price" min="0" max="99999999.99" step="0.01" required value="<?= e((string)$p['price']) ?>"></label>
+<label>Quantity<input type="number" name="quantity" min="0" max="4294967295" step="1" required value="<?= (int)$p['quantity'] ?>"></label>
 <label>Product photos (JPEG, PNG, WebP; max 5 MB each)<input type="file" id="photos" accept="image/jpeg,image/png,image/webp" multiple></label>
 <div class="photo-admin-grid" id="newPreviews" aria-live="polite"></div><p class="hint">A 320px JPEG thumbnail is generated in your browser for each selected image and uploaded to S3 alongside the original. Choose several photos at once, or edit this product later to add more. First photo is the primary image.</p>
 <?php if($photos): ?><h3>Existing photos</h3><div class="photo-admin-grid" id="existingPhotos">

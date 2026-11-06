@@ -50,3 +50,8 @@ Note: A failed upload may leave an unreferenced object in S3. Browser-side thumb
 ## Product descriptions
 
 The `products.description` TEXT column is already part of the original database schema. The Add/Edit Product CMS form includes a required Description textarea, and both the home and Products pages render the saved description. This edition also displays descriptions in the admin product list. **No SQL migration is needed** if you installed the supplied schema. Verify with `SHOW COLUMNS FROM products LIKE 'description';`. If you created your own products table without this column, back up the database first and then run `ALTER TABLE products ADD COLUMN description TEXT NOT NULL;`.
+
+## Quantity upgrade (existing installations)
+1. Back up your database and application. Run `mysql -u YOUR_DB_USER -p YOUR_DB_NAME < sql/migrate_quantity.sql` **once**. Do not reimport `schema.sql` or rerun the migration. Existing products start at quantity 0.
+2. Deploy updated `public/admin/edit.php`, `public/admin/save.php`, `public/admin/index.php`, `public/products.php`, and `public/index.php`. Keep your existing `.env` and `vendor/` directory.
+3. Edit each product in the CMS to set its quantity. Quantity is a nonnegative whole number (0–4,294,967,295). It is displayed on the home page, products page, and admin list. This is a displayed stock count only; there is no checkout or automatic inventory deduction.

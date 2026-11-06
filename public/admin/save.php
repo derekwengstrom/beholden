@@ -2,9 +2,9 @@
 require dirname(__DIR__,2).'/app/bootstrap.php';requireAdmin();
 if($_SERVER['REQUEST_METHOD']!=='POST'){http_response_code(405);exit;}verifyCsrf();
 $id=filter_var($_POST['id']??0,FILTER_VALIDATE_INT) ?: 0;
-$name=trim((string)($_POST['name']??''));$description=trim((string)($_POST['description']??''));$price=(string)($_POST['price']??'');
+$name=trim((string)($_POST['name']??''));$description=trim((string)($_POST['description']??''));$price=(string)($_POST['price']??'');$quantity=(string)($_POST['quantity']??'');
 $new=$_POST['new_photo_keys']??[];$thumbs=$_POST['new_thumbnail_keys']??[];$existing=$_POST['existing_photo_ids']??[];$removed=$_POST['removed_photo_ids']??[];
-if(!is_array($new)||!is_array($thumbs)||count($new)!==count($thumbs)||!is_array($existing)||!is_array($removed)||count($new)>30||count($existing)>200||count($removed)>200||$name===''||mb_strlen($name)>200||$description===''||!preg_match('/^\d{1,8}(?:\.\d{1,2})?$/',$price)||(float)$price>99999999.99){http_response_code(422);exit('Invalid product data');}
+if(!is_array($new)||!is_array($thumbs)||count($new)!==count($thumbs)||!is_array($existing)||!is_array($removed)||count($new)>30||count($existing)>200||count($removed)>200||$name===''||mb_strlen($name)>200||$description===''||!preg_match('/^(?:0|[1-9][0-9]{0,9})$/',$quantity)||(float)$quantity>4294967295||!preg_match('/^\d{1,8}(?:\.\d{1,2})?$/',$price)||(float)$price>99999999.99){http_response_code(422);exit('Invalid product data');}
 if(count($new)!==count(array_unique($new))||count($existing)!==count(array_unique($existing))){http_response_code(422);exit('Duplicate photos');}
 foreach($new as $key){if(!is_string($key)||!preg_match('/^products\/[a-f0-9]{32}\.(jpg|png|webp)$/',$key)){http_response_code(422);exit('Invalid photo key');}}
 foreach($thumbs as $key){if(!is_string($key)||!preg_match('/^products\/thumbs\/[a-f0-9]{32}\.jpg$/',$key)){http_response_code(422);exit('Invalid thumbnail key');}}
@@ -19,8 +19,8 @@ try{
  $requested=array_map('intval',$existing);$toRemove=array_map('intval',$removed);
  if(count(array_diff(array_merge($requested,$toRemove),$current))>0||count(array_diff($current,array_merge($requested,$toRemove)))>0)throw new RuntimeException('Photo list changed. Refresh and try again');
  }else{if($existing||$removed)throw new RuntimeException('Invalid photos for new product');}
- if($id){$q=$pdo->prepare('UPDATE products SET name=?,description=?,price=? WHERE productId=?');$q->execute([$name,$description,$price,$id]);}
- else{$q=$pdo->prepare('INSERT INTO products (name,description,price) VALUES (?,?,?)');$q->execute([$name,$description,$price]);$id=(int)$pdo->lastInsertId();}
+ if($id){$q=$pdo->prepare('UPDATE products SET name=?,description=?,price=?,quantity=? WHERE productId=?');$q->execute([$name,$description,$price,(int)$quantity,$id]);}
+ else{$q=$pdo->prepare('INSERT INTO products (name,description,price,quantity) VALUES (?,?,?,?)');$q->execute([$name,$description,$price,(int)$quantity]);$id=(int)$pdo->lastInsertId();}
  if($removed){$marks=implode(',',array_fill(0,count($removed),'?'));$q=$pdo->prepare("DELETE FROM product_photos WHERE product_id=? AND id IN ($marks)");$q->execute(array_merge([$id],array_map('intval',$removed)));}
  $position=0;
  foreach($existing as $photoId){$q=$pdo->prepare('UPDATE product_photos SET sort_order=? WHERE product_id=? AND id=?');$q->execute([$position++,$id,(int)$photoId]);}

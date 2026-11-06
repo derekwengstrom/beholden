@@ -55,3 +55,13 @@ The `products.description` TEXT column is already part of the original database 
 1. Back up your database and application. Run `mysql -u YOUR_DB_USER -p YOUR_DB_NAME < sql/migrate_quantity.sql` **once**. Do not reimport `schema.sql` or rerun the migration. Existing products start at quantity 0.
 2. Deploy updated `public/admin/edit.php`, `public/admin/save.php`, `public/admin/index.php`, `public/products.php`, and `public/index.php`. Keep your existing `.env` and `vendor/` directory.
 3. Edit each product in the CMS to set its quantity. Quantity is a nonnegative whole number (0–4,294,967,295). It is displayed on the home page, products page, and admin list. This is a displayed stock count only; there is no checkout or automatic inventory deduction.
+
+## CMS search and pagination
+
+The admin product listing (`/admin/index.php`) displays 40 products per page.
+Use the search box to filter across all fields in `products` (including ID,
+name, description, price, quantity, image key, and timestamps) and the original
+and thumbnail S3 object keys in `product_photos`. The search term persists as
+you move between result pages. Searches are case-insensitive if the MySQL
+column collation is case-insensitive. No schema migration is needed for this
+feature; deploy `public/admin/index.php` and `public/assets/style.css`.

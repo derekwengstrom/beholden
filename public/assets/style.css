@@ -5,3 +5,14 @@
 .admin-list-thumb{width:70px;height:70px;object-fit:cover;border-radius:6px;background:#f5f6f8}#newPreviews{margin-top:.75rem}#newPreviews small{overflow-wrap:anywhere}
 
 .admin-description { max-width: 380px; min-width: 180px; white-space: normal; overflow-wrap: anywhere; line-height: 1.4; }
+
+/* CMS search and pagination */
+.admin-search{display:flex;align-items:center;flex-wrap:wrap;gap:.65rem;margin:1rem 0}
+.admin-search label{font-weight:600}
+.admin-search input{flex:1 1 260px;min-width:0;padding:.7rem;border:1px solid #bac5cf;border-radius:6px;font:inherit}
+.admin-search a{padding:.5rem}
+.admin-results{color:#54616c;margin:.75rem 0}
+.admin-pagination{display:flex;justify-content:flex-start;align-items:center;gap:.45rem;flex-wrap:wrap;margin:1.5rem 0}
+.admin-pagination a,.admin-pagination .current{display:inline-block;padding:.45rem .7rem;border:1px solid #cbd5df;border-radius:6px;background:#fff}
+.admin-pagination .current{background:#1769aa;color:white;border-color:#1769aa;font-weight:700}
+.admin-pagination span:not(.current){margin:0 .5rem;color:#54616c}

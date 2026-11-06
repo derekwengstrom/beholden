@@ -9,7 +9,7 @@ document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!modal.hidden)close
 document.querySelectorAll('form.add-cart').forEach(form=>form.addEventListener('submit',async e=>{
 e.preventDefault();if(pending)return;pending=true;origin=form.querySelector('button[type=submit],button:not([type])');if(origin)origin.disabled=true;
 try{
- const res=await fetch(form.action,{method:'POST',body:new FormData(form),credentials:'same-origin',headers:{'X-Requested-With':'XMLHttpRequest','Accept':'application/json'}});
+ const res=await fetch(form.getAttribute('action') || '/cart.php',{method:'POST',body:new FormData(form),credentials:'same-origin',headers:{'X-Requested-With':'XMLHttpRequest','Accept':'application/json'}});
  if(!res.ok)throw Error('Could not add item to cart.');
  const data=await res.json();if(!data.ok)throw Error('Unable to add item.');
  const detail=await fetch('/cart.php?modal=1',{credentials:'same-origin',cache:'no-store'});

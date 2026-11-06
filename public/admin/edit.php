@@ -1,7 +1,7 @@
 <?php
 require dirname(__DIR__,2).'/app/bootstrap.php'; requireAdmin(); require dirname(__DIR__,2).'/app/layout.php';
 $id=filter_input(INPUT_GET,'id',FILTER_VALIDATE_INT) ?: 0;
-$p=['name'=>'','description'=>'','price'=>'','quantity'=>0,'photo_key'=>null]; $photos=[];
+$p=['name'=>'','description'=>'','size'=>'','color'=>'','material'=>'','price'=>'','quantity'=>0,'photo_key'=>null]; $photos=[];
 if($id){$q=db()->prepare('SELECT * FROM products WHERE productId=?');$q->execute([$id]);$p=$q->fetch();if(!$p){http_response_code(404);exit('Product not found');}$photos=photosForProducts([['productId'=>$id]])[$id]??[];}
 pageStart($id?'Edit product':'Add product'); ?>
 <div class="panel"><h1><?= $id?'Edit':'Add' ?> product</h1>
@@ -9,6 +9,9 @@ pageStart($id?'Edit product':'Add product'); ?>
 <input type="hidden" name="csrf" value="<?= e(csrf()) ?>"><input type="hidden" name="id" value="<?= $id ?>">
 <label>Name<input name="name" required maxlength="200" value="<?= e($p['name']) ?>"></label>
 <label>Description<textarea name="description" rows="5" required><?= e($p['description']) ?></textarea></label>
+<label>Size<input name="size" maxlength="100" value="<?= e($p['size']) ?>" placeholder="e.g. 72 in round"></label>
+<label>Color<input name="color" maxlength="100" value="<?= e($p['color']) ?>" placeholder="e.g. Ivory"></label>
+<label>Material<input name="material" maxlength="100" value="<?= e($p['material']) ?>" placeholder="e.g. Polyester"></label>
 <label>Price (USD)<input type="number" name="price" min="0" max="99999999.99" step="0.01" required value="<?= e((string)$p['price']) ?>"></label>
 <label>Quantity<input type="number" name="quantity" min="0" max="4294967295" step="1" required value="<?= (int)$p['quantity'] ?>"></label>
 <label>Product photos (JPEG, PNG, WebP; max 5 MB each)<input type="file" id="photos" accept="image/jpeg,image/png,image/webp" multiple></label>

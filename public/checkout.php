@@ -9,14 +9,14 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
  else{
   $pdo=db();try{
    $pdo->beginTransaction();$ids=array_keys($cart);sort($ids,SORT_NUMERIC);
-   $q=$pdo->prepare('SELECT productId,name,price,quantity FROM products WHERE productId IN ('.implode(',',array_fill(0,count($ids),'?')).') ORDER BY productId FOR UPDATE');$q->execute($ids);$products=$q->fetchAll();
+   $q=$pdo->prepare('SELECT productId,name,size,color,material,price,quantity FROM products WHERE productId IN ('.implode(',',array_fill(0,count($ids),'?')).') ORDER BY productId FOR UPDATE');$q->execute($ids);$products=$q->fetchAll();
    if(count($products)!==count($ids))throw new RuntimeException('One of your products is no longer available.');
    $total=0;foreach($products as $p){$id=(int)$p['productId'];$qty=(int)$cart[$id];if($qty<1||$qty>10000||availabilityFor($pdo,$id,$pickup,$return)<$qty)throw new RuntimeException($p['name'].' does not have enough availability for those dates.');$total+=(float)$p['price']*$qty;}
    $number='R'.strtoupper(bin2hex(random_bytes(7)));
    $q=$pdo->prepare('INSERT INTO rental_orders (order_number,customer_name,customer_email,customer_phone,customer_notes,pickup_date,return_date,total) VALUES (?,?,?,?,?,?,?,?)');
    $q->execute([$number,$name,$email,$phone,$notes,$pickup,$return,number_format($total,2,'.','')]);$orderId=(int)$pdo->lastInsertId();
-   $q=$pdo->prepare('INSERT INTO rental_order_items (order_id,product_id,product_name,quantity,unit_price) VALUES (?,?,?,?,?)');
-   foreach($products as $p)$q->execute([$orderId,$p['productId'],$p['name'],$cart[(int)$p['productId']],$p['price']]);
+   $q=$pdo->prepare('INSERT INTO rental_order_items (order_id,product_id,product_name,product_size,product_color,product_material,quantity,unit_price) VALUES (?,?,?,?,?,?,?,?)');
+   foreach($products as $p)$q->execute([$orderId,$p['productId'],$p['name'],$p['size'],$p['color'],$p['material'],$cart[(int)$p['productId']],$p['price']]);
    $pdo->commit();unset($_SESSION['rental_cart']);$_SESSION['completed_order']=$number;header('Location: /order-success.php');exit;
   }catch(Throwable $ex){if($pdo->inTransaction())$pdo->rollBack();$error=$ex instanceof RuntimeException?$ex->getMessage():'Unable to place reservation. Please try again.';error_log('Rental checkout: '.$ex->getMessage());}
  }

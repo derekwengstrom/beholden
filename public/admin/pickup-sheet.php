@@ -9,7 +9,7 @@ $q=db()->prepare('SELECT * FROM rental_orders WHERE id=?');
 $q->execute([$id]); $order=$q->fetch();
 if (!$order) { http_response_code(404); exit('Order not found'); }
 if ($order['status'] !== 'reserved') { http_response_code(409); exit('Pickup sheets are available for reserved orders only.'); }
-$q=db()->prepare('SELECT product_name, quantity, product_id FROM rental_order_items WHERE order_id=? ORDER BY product_name,id');
+$q=db()->prepare('SELECT product_name, product_size, product_color, product_material, quantity, product_id FROM rental_order_items WHERE order_id=? ORDER BY product_name,id');
 $q->execute([$id]); $items=$q->fetchAll();
 
 // Small dependency-free PDF writer using standard PDF Helvetica.
@@ -70,6 +70,8 @@ $units=0;
 foreach ($items as $item) {
     $units+=(int)$item['quantity'];
     $text='[  ]  '.(int)$item['quantity'].' x '.$item['product_name'];
+    $specs=array_filter([$item['product_size']!==''?'Size: '.$item['product_size']:'',$item['product_color']!==''?'Color: '.$item['product_color']:'',$item['product_material']!==''?'Material: '.$item['product_material']:'']);
+    if($specs) $text.=' - '.implode(' / ',$specs);
     if ($item['product_id']!==null) $text.='  (Product #'.$item['product_id'].')';
     $lines=pdfWrap($text,72);
     foreach($lines as $n=>$line) lineText($line,11,$n===0,$n===0?48:78);

@@ -16,6 +16,7 @@ $params = [];
 if ($search !== '') {
     $where = " WHERE (CAST(p.productId AS CHAR) LIKE :s1
         OR p.name LIKE :s2 OR p.description LIKE :s3
+        OR p.size LIKE :s11 OR p.color LIKE :s12 OR p.material LIKE :s13
         OR CAST(p.price AS CHAR) LIKE :s4
         OR CAST(p.quantity AS CHAR) LIKE :s5
         OR COALESCE(p.photo_key, '') LIKE :s6
@@ -24,7 +25,7 @@ if ($search !== '') {
         OR EXISTS (SELECT 1 FROM product_photos ph
                    WHERE ph.product_id = p.productId
                    AND (ph.photo_key LIKE :s9 OR COALESCE(ph.thumbnail_key, '') LIKE :s10)))";
-    $params = array_combine(array_map(static fn($n) => ':s'.$n, range(1, 10)), array_fill(0, 10, '%'.$search.'%'));
+    $params = array_combine(array_map(static fn($n) => ':s'.$n, range(1, 13)), array_fill(0, 13, '%'.$search.'%'));
 }
 
 $countStmt = db()->prepare('SELECT COUNT(*) FROM products p' . $where);
@@ -53,7 +54,7 @@ pageStart('Manage products');
 </div>
 <form class="admin-search" action="/admin/index.php" method="get" role="search">
     <label for="product-search">Search products</label>
-    <input id="product-search" type="search" name="q" value="<?= e($search) ?>" placeholder="Name, description, ID, price, quantity, photo key, date…" maxlength="200">
+    <input id="product-search" type="search" name="q" value="<?= e($search) ?>" placeholder="Name, size, color, material, description, ID, price…" maxlength="200">
     <button type="submit">Search</button>
     <?php if ($search !== ''): ?><a href="/admin/index.php">Clear</a><?php endif; ?>
 </form>
@@ -62,7 +63,7 @@ pageStart('Manage products');
     <?php if ($search !== ''): ?> for “<?= e($search) ?>”<?php endif; ?>
 </p>
 <div class="tablewrap admin-tablewrap"><table class="admin-products-table">
-<thead><tr><th>ID</th><th>Preview</th><th>Product</th><th>Description</th><th>Price</th><th>Quantity</th><th>Actions</th></tr></thead>
+<thead><tr><th>ID</th><th>Preview</th><th>Product</th><th>Description</th><th>Size</th><th>Color</th><th>Material</th><th>Price</th><th>Quantity</th><th>Actions</th></tr></thead>
 <tbody>
 <?php foreach ($products as $p): ?>
 <tr>
@@ -70,6 +71,9 @@ pageStart('Manage products');
 <td data-label="Preview"><?php $first = $photosByProduct[(int)$p['productId']][0] ?? null; $preview = photoUrl($first ? ($first['thumbnail_key'] ?: $first['photo_key']) : $p['photo_key']); if ($preview): ?><img class="admin-list-thumb" src="<?= e($preview) ?>" alt=""><?php endif; ?></td>
 <td data-label="Product"><?= e($p['name']) ?></td>
 <td data-label="Description" class="admin-description"><?= nl2br(e($p['description'])) ?></td>
+<td data-label="Size"><?= e($p['size']) ?></td>
+<td data-label="Color"><?= e($p['color']) ?></td>
+<td data-label="Material"><?= e($p['material']) ?></td>
 <td data-label="Price">$<?= number_format((float)$p['price'], 2) ?></td>
 <td data-label="Quantity"><?= number_format($available[(int)$p['productId']]??0) ?> available / <?= number_format((int)$p['quantity']) ?> owned</td>
 <td data-label="Actions" class="admin-actions"><a href="/admin/edit.php?id=<?= (int)$p['productId'] ?>">Edit</a> <form class="inline" method="post" action="/admin/delete.php" onsubmit="return confirm('Delete this product?')"><input type="hidden" name="csrf" value="<?= e(csrf()) ?>"><input type="hidden" name="id" value="<?= (int)$p['productId'] ?>"><button class="danger">Delete</button></form></td>

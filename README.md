@@ -65,3 +65,8 @@ and thumbnail S3 object keys in `product_photos`. The search term persists as
 you move between result pages. Searches are case-insensitive if the MySQL
 column collation is case-insensitive. No schema migration is needed for this
 feature; deploy `public/admin/index.php` and `public/assets/style.css`.
+
+
+## Mobile-friendly layout
+
+The storefront, product galleries, login and product editor adapt to phone and tablet widths. The admin product table becomes labeled product cards on narrow screens; search and 40-per-page pagination remain server-side. No database migration or additional Composer packages are needed for this update.

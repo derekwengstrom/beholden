@@ -61,18 +61,18 @@ pageStart('Manage products');
     <?php if ($total): ?>Showing <?= number_format($offset + 1) ?>–<?= number_format($offset + count($products)) ?> of <?= number_format($total) ?> products<?php else: ?>No matching products<?php endif; ?>
     <?php if ($search !== ''): ?> for “<?= e($search) ?>”<?php endif; ?>
 </p>
-<div class="tablewrap"><table>
+<div class="tablewrap admin-tablewrap"><table class="admin-products-table">
 <thead><tr><th>ID</th><th>Preview</th><th>Product</th><th>Description</th><th>Price</th><th>Quantity</th><th>Actions</th></tr></thead>
 <tbody>
 <?php foreach ($products as $p): ?>
 <tr>
-<td><?= (int)$p['productId'] ?></td>
-<td><?php $first = $photosByProduct[(int)$p['productId']][0] ?? null; $preview = photoUrl($first ? ($first['thumbnail_key'] ?: $first['photo_key']) : $p['photo_key']); if ($preview): ?><img class="admin-list-thumb" src="<?= e($preview) ?>" alt=""><?php endif; ?></td>
-<td><?= e($p['name']) ?></td>
-<td class="admin-description"><?= nl2br(e($p['description'])) ?></td>
-<td>$<?= number_format((float)$p['price'], 2) ?></td>
-<td><?= number_format((int)$p['quantity']) ?></td>
-<td><a href="/admin/edit.php?id=<?= (int)$p['productId'] ?>">Edit</a> <form class="inline" method="post" action="/admin/delete.php" onsubmit="return confirm('Delete this product?')"><input type="hidden" name="csrf" value="<?= e(csrf()) ?>"><input type="hidden" name="id" value="<?= (int)$p['productId'] ?>"><button class="danger">Delete</button></form></td>
+<td data-label="ID"><?= (int)$p['productId'] ?></td>
+<td data-label="Preview"><?php $first = $photosByProduct[(int)$p['productId']][0] ?? null; $preview = photoUrl($first ? ($first['thumbnail_key'] ?: $first['photo_key']) : $p['photo_key']); if ($preview): ?><img class="admin-list-thumb" src="<?= e($preview) ?>" alt=""><?php endif; ?></td>
+<td data-label="Product"><?= e($p['name']) ?></td>
+<td data-label="Description" class="admin-description"><?= nl2br(e($p['description'])) ?></td>
+<td data-label="Price">$<?= number_format((float)$p['price'], 2) ?></td>
+<td data-label="Quantity"><?= number_format((int)$p['quantity']) ?></td>
+<td data-label="Actions" class="admin-actions"><a href="/admin/edit.php?id=<?= (int)$p['productId'] ?>">Edit</a> <form class="inline" method="post" action="/admin/delete.php" onsubmit="return confirm('Delete this product?')"><input type="hidden" name="csrf" value="<?= e(csrf()) ?>"><input type="hidden" name="id" value="<?= (int)$p['productId'] ?>"><button class="danger">Delete</button></form></td>
 </tr>
 <?php endforeach; ?>
 </tbody></table></div>

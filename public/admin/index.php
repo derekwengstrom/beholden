@@ -48,7 +48,7 @@ pageStart('Manage products');
 ?>
 <div class="toolbar">
     <h1>Manage products</h1>
-    <a class="button" href="/admin/edit.php">Add product</a>
+    <a class="button" href="/admin/edit.php">Add product</a> <a class="button secondary" href="/admin/orders.php">Rental orders</a>
     <form action="/admin/logout.php" method="post"><input type="hidden" name="csrf" value="<?= e(csrf()) ?>"><button class="secondary">Log out</button></form>
 </div>
 <form class="admin-search" action="/admin/index.php" method="get" role="search">

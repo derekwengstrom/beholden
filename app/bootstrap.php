@@ -33,3 +33,23 @@ function galleryForProduct(array $product, array $photosByProduct): array {
  $photos=$photosByProduct[(int)$product['productId']] ?? [];
  return array_map(static fn($photo)=>['id'=>(int)$photo['id'],'url'=>photoUrl($photo['photo_key']),'thumbnail_url'=>photoUrl($photo['thumbnail_key'] ?: $photo['photo_key'])],$photos);
 }
+
+function cart(): array { return $_SESSION['rental_cart'] ?? []; }
+function cartCount(): int { return array_sum(array_map('intval',cart())); }
+function rentalDates(string $pickup, string $return): bool {
+ $a=DateTimeImmutable::createFromFormat('!Y-m-d',$pickup);
+ $b=DateTimeImmutable::createFromFormat('!Y-m-d',$return);
+ $today=new DateTimeImmutable('today');
+ return $a && $b && $a->format('Y-m-d')===$pickup && $b->format('Y-m-d')===$return
+     && $a >= $today && $a->modify('+14 days')->format('Y-m-d')===$return;
+}
+function availabilityFor(PDO $pdo, int $productId, string $pickup, string $return): int {
+ $q=$pdo->prepare("SELECT p.quantity - COALESCE((SELECT SUM(oi.quantity)
+   FROM rental_order_items oi JOIN rental_orders o ON o.id=oi.order_id
+   WHERE oi.product_id=p.productId AND
+   (o.status='out' OR (o.status='reserved' AND o.pickup_date < :return_date AND o.return_date > :pickup_date))),0)
+   FROM products p WHERE p.productId=:id");
+ $q->execute([':return_date'=>$return,':pickup_date'=>$pickup,':id'=>$productId]);
+ $result=$q->fetchColumn();return $result===false ? 0 : max(0,(int)$result);
+}
+function orderStatusLabel(string $status): string { return ['reserved'=>'Reserved / awaiting pickup','out'=>'Checked out','returned'=>'Returned','cancelled'=>'Cancelled'][$status] ?? $status; }

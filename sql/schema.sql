@@ -25,3 +25,5 @@ CREATE TABLE IF NOT EXISTS product_photos (
  KEY idx_product_order (product_id, sort_order, id),
  CONSTRAINT fk_product_photos_product FOREIGN KEY (product_id) REFERENCES products(productId) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- For fresh installations, also apply sql/migrate_rentals.sql.

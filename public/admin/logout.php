@@ -1,0 +1,1 @@
+<?php require dirname(__DIR__,2).'/app/bootstrap.php';requireAdmin();if($_SERVER['REQUEST_METHOD']!=='POST'){http_response_code(405);exit;}verifyCsrf();$_SESSION=[];session_destroy();header('Location: /admin/login.php');exit;

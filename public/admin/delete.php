@@ -1,0 +1,1 @@
+<?php require dirname(__DIR__,2).'/app/bootstrap.php';requireAdmin();if($_SERVER['REQUEST_METHOD']!=='POST'){http_response_code(405);exit;}verifyCsrf();$id=filter_var($_POST['id']??null,FILTER_VALIDATE_INT);if(!$id){http_response_code(422);exit('Invalid ID');}$q=db()->prepare('DELETE FROM products WHERE productId=?');$q->execute([$id]);header('Location: /admin/index.php');exit;

@@ -1,0 +1,21 @@
+name: Self-Hosted Git Pull
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch: # Allows manual triggering from the GitHub UI
+
+jobs:
+  sync-repo:
+    runs-on: self-hosted
+    
+    defaults:
+      run:
+        # This automatically applies 'cd /path/to/your/directory' to all steps in this job
+        working-directory: /sites/beholden
+
+    steps:
+      - name: Fetch and Pull Latest Changes
+        run: |
+          git pull

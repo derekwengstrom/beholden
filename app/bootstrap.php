@@ -43,13 +43,19 @@ function rentalDates(string $pickup, string $return): bool {
  return $a && $b && $a->format('Y-m-d')===$pickup && $b->format('Y-m-d')===$return
      && $a >= $today && $a->modify('+14 days')->format('Y-m-d')===$return;
 }
+// Owned stock is products.quantity; active orders reserve units until returned/cancelled.
+function availableInventory(PDO $pdo, array $ids): array {
+ $ids=array_values(array_unique(array_map('intval',$ids)));
+ if (!$ids) return [];
+ $marks=implode(',',array_fill(0,count($ids),'?'));
+ $sql="SELECT p.productId, GREATEST(0, p.quantity - COALESCE((SELECT SUM(oi.quantity)
+ FROM rental_order_items oi JOIN rental_orders o ON o.id=oi.order_id
+ WHERE oi.product_id=p.productId AND o.status IN ('reserved','out')),0)) AS available
+ FROM products p WHERE p.productId IN ($marks)";
+ $q=$pdo->prepare($sql);$q->execute($ids);
+ return array_map('intval',$q->fetchAll(PDO::FETCH_KEY_PAIR));
+}
 function availabilityFor(PDO $pdo, int $productId, string $pickup, string $return): int {
- $q=$pdo->prepare("SELECT p.quantity - COALESCE((SELECT SUM(oi.quantity)
-   FROM rental_order_items oi JOIN rental_orders o ON o.id=oi.order_id
-   WHERE oi.product_id=p.productId AND
-   (o.status='out' OR (o.status='reserved' AND o.pickup_date < :return_date AND o.return_date > :pickup_date))),0)
-   FROM products p WHERE p.productId=:id");
- $q->execute([':return_date'=>$return,':pickup_date'=>$pickup,':id'=>$productId]);
- $result=$q->fetchColumn();return $result===false ? 0 : max(0,(int)$result);
+ return availableInventory($pdo,[$productId])[$productId] ?? 0;
 }
 function orderStatusLabel(string $status): string { return ['reserved'=>'Reserved / awaiting pickup','out'=>'Checked out','returned'=>'Returned','cancelled'=>'Cancelled'][$status] ?? $status; }

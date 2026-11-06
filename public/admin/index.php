@@ -41,6 +41,7 @@ $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
 $stmt->execute();
 $products = $stmt->fetchAll();
 $photosByProduct = photosForProducts($products);
+$available = availableInventory(db(),array_column($products,'productId'));
 function adminPageUrl(int $number, string $search): string {
     return '/admin/index.php?' . http_build_query(array_filter(['page' => $number, 'q' => $search], static fn($v) => $v !== ''));
 }
@@ -70,7 +71,7 @@ pageStart('Manage products');
 <td data-label="Product"><?= e($p['name']) ?></td>
 <td data-label="Description" class="admin-description"><?= nl2br(e($p['description'])) ?></td>
 <td data-label="Price">$<?= number_format((float)$p['price'], 2) ?></td>
-<td data-label="Quantity"><?= number_format((int)$p['quantity']) ?></td>
+<td data-label="Quantity"><?= number_format($available[(int)$p['productId']]??0) ?> available / <?= number_format((int)$p['quantity']) ?> owned</td>
 <td data-label="Actions" class="admin-actions"><a href="/admin/edit.php?id=<?= (int)$p['productId'] ?>">Edit</a> <form class="inline" method="post" action="/admin/delete.php" onsubmit="return confirm('Delete this product?')"><input type="hidden" name="csrf" value="<?= e(csrf()) ?>"><input type="hidden" name="id" value="<?= (int)$p['productId'] ?>"><button class="danger">Delete</button></form></td>
 </tr>
 <?php endforeach; ?>

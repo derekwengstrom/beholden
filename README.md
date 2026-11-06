@@ -46,3 +46,7 @@ Keep S3 Block Public Access enabled. Photos are read using presigned GET URLs (1
 5. Your S3 CORS policy must allow PUT from your site origin. IAM permissions must permit `s3:PutObject` and `s3:GetObject` for both `products/*` and `products/thumbs/*` (the latter is already covered by `products/*`).
 
 Note: A failed upload may leave an unreferenced object in S3. Browser-side thumbnails are not an authoritative security validation of the original image; for untrusted administrators use server-side inspection or an S3 post-upload processing pipeline.
+
+## Product descriptions
+
+The `products.description` TEXT column is already part of the original database schema. The Add/Edit Product CMS form includes a required Description textarea, and both the home and Products pages render the saved description. This edition also displays descriptions in the admin product list. **No SQL migration is needed** if you installed the supplied schema. Verify with `SHOW COLUMNS FROM products LIKE 'description';`. If you created your own products table without this column, back up the database first and then run `ALTER TABLE products ADD COLUMN description TEXT NOT NULL;`.

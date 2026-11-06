@@ -4,7 +4,7 @@ $filter=(string)($_GET['status']??'active');$allowed=['active','reserved','out',
 $where=match($filter){'active'=>"WHERE status IN ('reserved','out')",'all'=>'',default=>'WHERE status='.db()->quote($filter)};
 $q=db()->query("SELECT * FROM rental_orders $where ORDER BY CASE WHEN status='out' THEN 0 ELSE 1 END,pickup_date ASC,id DESC LIMIT 300");$orders=$q->fetchAll();
 $items=[];if($orders){$ids=array_column($orders,'id');$q=db()->prepare('SELECT * FROM rental_order_items WHERE order_id IN ('.implode(',',array_fill(0,count($ids),'?')).') ORDER BY id');$q->execute($ids);foreach($q->fetchAll() as $item)$items[$item['order_id']][]=$item;}
-pageStart('Rental orders');?><div class="toolbar"><h1>Rental orders</h1><a href="/admin/index.php">Manage products</a><a href="/admin/logout.php">Account</a></div>
+pageStart('Rental orders');?><div class="toolbar"><h1>Rental orders</h1></div>
 <nav class="order-filters" aria-label="Filter orders"><?php foreach($allowed as $status):?><a class="<?= $filter===$status?'active':'' ?>" href="?status=<?=e($status)?>"><?=e(ucfirst($status))?></a><?php endforeach;?></nav>
 <p class="hint">Reserved items block availability for overlapping dates. Checked-out items block availability until you mark them returned, including overdue rentals. Orders are not charged online.</p>
 <?php if(!$orders):?><p>No orders in this view.</p><?php endif;?>

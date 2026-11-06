@@ -120,3 +120,9 @@ button,.button{min-height:44px;touch-action:manipulation}
  .admin-sidebar-nav a{padding:.65rem 1rem;flex:1 1 auto;justify-content:center}
  .admin-shell-page .admin-content{padding:1.2rem 1rem}
 }
+
+/* Admin logout integrated into main header navigation */
+.nav-logout{display:inline-flex;margin:0;align-items:center}
+.nav-logout-button{background:transparent;color:inherit;border:0;border-radius:5px;padding:.45rem .2rem;font:inherit;font-weight:inherit;cursor:pointer;min-height:44px}
+.nav-logout-button:hover{text-decoration:underline;background:transparent}
+@media(max-width:760px){.nav-logout-button{padding:.45rem .2rem}}

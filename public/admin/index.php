@@ -5,6 +5,23 @@ requireAdmin();
 require dirname(__DIR__, 2) . '/app/layout.php';
 
 $perPage = 40;
+// Only allow known columns in ORDER BY (never interpolate raw query parameters).
+$sortColumns = ['id' => 'p.productId', 'product' => 'p.name', 'material' => 'p.material', 'color' => 'p.color', 'price' => 'p.price'];
+$sort = (string)($_GET['sort'] ?? 'id');
+if (!isset($sortColumns[$sort])) $sort = 'id';
+$direction = strtolower((string)($_GET['dir'] ?? 'desc'));
+if (!in_array($direction, ['asc', 'desc'], true)) $direction = 'asc';
+$orderBy = $sortColumns[$sort] . ' ' . strtoupper($direction) . ($sort === 'id' ? '' : ', p.productId ASC');
+function adminSortUrl(string $column, string $current, string $direction, string $search): string {
+    $next = ($column === $current && $direction === 'asc') ? 'desc' : 'asc';
+    return '/admin/index.php?' . http_build_query(['q' => $search, 'sort' => $column, 'dir' => $next, 'page' => 1]);
+}
+function adminSortHeader(string $column, string $label, string $sort, string $direction, string $search): string {
+    $active = $column === $sort;
+    $arrow = $active ? ($direction === 'asc' ? ' ▲' : ' ▼') : ' ↕';
+    $aria = $active ? ' aria-sort="' . ($direction === 'asc' ? 'ascending' : 'descending') . '"' : '';
+    return '<th' . $aria . '><a class="admin-sort-link" href="' . e(adminSortUrl($column, $sort, $direction, $search)) . '">' . e($label) . '<span aria-hidden="true">' . $arrow . '</span></a></th>';
+}
 $search = trim((string)($_GET['q'] ?? ''));
 if (mb_strlen($search, 'UTF-8') > 200) $search = mb_substr($search, 0, 200, 'UTF-8');
 $page = filter_var($_GET['page'] ?? 1, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]) ?: 1;
@@ -35,7 +52,7 @@ $totalPages = max(1, (int)ceil($total / $perPage));
 $page = min($page, $totalPages);
 $offset = ($page - 1) * $perPage;
 
-$stmt = db()->prepare('SELECT p.* FROM products p' . $where . ' ORDER BY p.productId DESC LIMIT :limit OFFSET :offset');
+$stmt = db()->prepare('SELECT p.* FROM products p' . $where . ' ORDER BY ' . $orderBy . ' LIMIT :limit OFFSET :offset');
 foreach ($params as $key => $value) $stmt->bindValue($key, $value, PDO::PARAM_STR);
 $stmt->bindValue(':limit', $perPage, PDO::PARAM_INT);
 $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
@@ -43,8 +60,8 @@ $stmt->execute();
 $products = $stmt->fetchAll();
 $photosByProduct = photosForProducts($products);
 $available = availableInventory(db(),array_column($products,'productId'));
-function adminPageUrl(int $number, string $search): string {
-    return '/admin/index.php?' . http_build_query(array_filter(['page' => $number, 'q' => $search], static fn($v) => $v !== ''));
+function adminPageUrl(int $number, string $search, string $sort, string $direction): string {
+    return '/admin/index.php?' . http_build_query(array_filter(['page' => $number, 'q' => $search, 'sort' => $sort, 'dir' => $direction], static fn($v) => $v !== ''));
 }
 pageStart('Manage products');
 ?>
@@ -54,6 +71,7 @@ pageStart('Manage products');
 </div>
 <form class="admin-search" action="/admin/index.php" method="get" role="search">
     <label for="product-search">Search products</label>
+    <input type="hidden" name="sort" value="<?= e($sort) ?>"><input type="hidden" name="dir" value="<?= e($direction) ?>">
     <input id="product-search" type="search" name="q" value="<?= e($search) ?>" placeholder="Name, size, color, material, description, ID, price…" maxlength="200">
     <button type="submit">Search</button>
     <?php if ($search !== ''): ?><a href="/admin/index.php">Clear</a><?php endif; ?>
@@ -63,7 +81,7 @@ pageStart('Manage products');
     <?php if ($search !== ''): ?> for “<?= e($search) ?>”<?php endif; ?>
 </p>
 <div class="tablewrap admin-tablewrap"><table class="admin-products-table">
-<thead><tr><th>ID</th><th>Preview</th><th>Product</th><th>Description</th><th>Size</th><th>Color</th><th>Material</th><th>Price</th><th>Quantity</th><th>Actions</th></tr></thead>
+<thead><tr><?= adminSortHeader('id', 'ID', $sort, $direction, $search) ?><th>Preview</th><?= adminSortHeader('product', 'Product', $sort, $direction, $search) ?><th>Description</th><th>Size</th><?= adminSortHeader('color', 'Color', $sort, $direction, $search) ?><?= adminSortHeader('material', 'Material', $sort, $direction, $search) ?><?= adminSortHeader('price', 'Price', $sort, $direction, $search) ?><th>Quantity</th><th>Actions</th></tr></thead>
 <tbody>
 <?php foreach ($products as $p): ?>
 <tr>
@@ -82,12 +100,12 @@ pageStart('Manage products');
 </tbody></table></div>
 <?php if ($totalPages > 1): ?>
 <nav class="admin-pagination" aria-label="Product pages">
-    <?php if ($page > 1): ?><a href="<?= e(adminPageUrl($page - 1, $search)) ?>">← Previous</a><?php endif; ?>
+    <?php if ($page > 1): ?><a href="<?= e(adminPageUrl($page - 1, $search, $sort, $direction)) ?>">← Previous</a><?php endif; ?>
     <?php for ($n = max(1, $page - 2); $n <= min($totalPages, $page + 2); $n++): ?>
-        <?php if ($n === $page): ?><span class="current" aria-current="page"><?= $n ?></span><?php else: ?><a href="<?= e(adminPageUrl($n, $search)) ?>"><?= $n ?></a><?php endif; ?>
+        <?php if ($n === $page): ?><span class="current" aria-current="page"><?= $n ?></span><?php else: ?><a href="<?= e(adminPageUrl($n, $search, $sort, $direction)) ?>"><?= $n ?></a><?php endif; ?>
     <?php endfor; ?>
     <span>Page <?= $page ?> of <?= $totalPages ?></span>
-    <?php if ($page < $totalPages): ?><a href="<?= e(adminPageUrl($page + 1, $search)) ?>">Next →</a><?php endif; ?>
+    <?php if ($page < $totalPages): ?><a href="<?= e(adminPageUrl($page + 1, $search, $sort, $direction)) ?>">Next →</a><?php endif; ?>
 </nav>
 <?php endif; ?>
 <?php pageEnd(); ?>

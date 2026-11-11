@@ -13,7 +13,7 @@ jobs:
     defaults:
       run:
         # This automatically applies 'cd /path/to/your/directory' to all steps in this job
-        working-directory: /sites/beholden
+        working-directory: /sites/rentthecollectionks.com
 
     steps:
       - name: Fetch and Pull Latest Changes

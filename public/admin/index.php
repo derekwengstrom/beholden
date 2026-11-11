@@ -18,9 +18,9 @@ function adminSortUrl(string $column, string $current, string $direction, string
 }
 function adminSortHeader(string $column, string $label, string $sort, string $direction, string $search): string {
     $active = $column === $sort;
-    $arrow = $active ? ($direction === 'asc' ? ' ▲' : ' ▼') : ' ↕';
+    $arrow = $active ? ($direction === 'asc' ? '▲' : '▼') : '↕';
     $aria = $active ? ' aria-sort="' . ($direction === 'asc' ? 'ascending' : 'descending') . '"' : '';
-    return '<th' . $aria . '><a class="admin-sort-link" href="' . e(adminSortUrl($column, $sort, $direction, $search)) . '">' . e($label) . '<span aria-hidden="true">' . $arrow . '</span></a></th>';
+    return '<th' . $aria . '><a class="admin-sort-link" href="' . e(adminSortUrl($column, $sort, $direction, $search)) . '"><span class="admin-sort-arrow" aria-hidden="true">' . $arrow . '</span><span class="admin-sort-label">' . e($label) . '</span></a></th>';
 }
 $search = trim((string)($_GET['q'] ?? ''));
 if (mb_strlen($search, 'UTF-8') > 200) $search = mb_substr($search, 0, 200, 'UTF-8');
